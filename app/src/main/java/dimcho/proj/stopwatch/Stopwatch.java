@@ -8,12 +8,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.ActionBarActivity;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -51,8 +47,59 @@ public class Stopwatch extends ActionBarActivity {
         textView.setTextSize(55);
     }
 
+    private static final int SKIP_DUPLICATES_DELAY = 100; // ms
+    private long lastVolumeUpEventTime;
+    private long lastVolumeDownEventTime;
 
-/* Handling the configuration change myself because of views inserted
+    private boolean voulumeUpKeyDownAlreadyProcessed;
+    private boolean voulumeDownKeyDownAlreadyProcessed;
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (KeyEvent.KEYCODE_VOLUME_UP == keyCode) {
+            System.out.println("onKeyUp_VOLUME_UP");
+            voulumeUpKeyDownAlreadyProcessed = false;
+            return true;
+        } else if (KeyEvent.KEYCODE_VOLUME_DOWN == keyCode) {
+            System.out.println("onKeyUp_VOLUME_DOWN");
+            voulumeDownKeyDownAlreadyProcessed = false;
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        // https://source.android.com/devices/accessories/headset/plug-headset-spec
+        // 0 Ohm     KeyEvent.KEYCODE_HEADSETHOOK
+        // 240 Ohm   KeyEvent.KEYCODE_VOLUME_UP
+        // 470 Ohm   KeyEvent.KEYCODE_VOLUME_DOWN
+        // 135 Ohm   ???NOT_WORK??? (Reserved (Pixel devices use this to launch voice commands))
+
+        long eventTime = event.getEventTime();
+
+//        if (KeyEvent.KEYCODE_HEADSETHOOK == keyCode && eventTime-lastEventTime > SKIP_DUPLICATES_DELAY) {
+//            lastEventTime = eventTime;
+//            onSWatchStart(null);
+//            return true;
+//        } else
+        if (KeyEvent.KEYCODE_VOLUME_UP == keyCode && !voulumeUpKeyDownAlreadyProcessed && eventTime- lastVolumeUpEventTime > SKIP_DUPLICATES_DELAY) {
+            System.out.println("onKeyDown_VOLUME_UP");
+            lastVolumeUpEventTime = eventTime;
+            voulumeUpKeyDownAlreadyProcessed = true;
+            onSWatchStart(null);
+            return true;
+        } else if (KeyEvent.KEYCODE_VOLUME_DOWN == keyCode && !voulumeDownKeyDownAlreadyProcessed && eventTime- lastVolumeDownEventTime > SKIP_DUPLICATES_DELAY) {
+            System.out.println("onKeyDown_VOLUME_DOWN");
+            lastVolumeDownEventTime = eventTime;
+            voulumeDownKeyDownAlreadyProcessed = true;
+            onSWatchLap(null);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    /* Handling the configuration change myself because of views inserted
    during run time.(lapDisplay and imageView)
     @Override
     public void onSaveInstanceState(Bundle saveInstanceState){
