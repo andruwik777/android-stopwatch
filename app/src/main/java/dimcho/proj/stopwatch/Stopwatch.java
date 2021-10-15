@@ -23,7 +23,7 @@ public class Stopwatch extends ActionBarActivity {
     private Button startButton;
     private Button lapButton;
     private TextView textView;
-    private Timer timer;
+    private Timer timer = new Timer();
     private NotificationCompat.Builder builder;
     private NotificationManager manager;
     private LayoutTransition transition;
@@ -69,7 +69,18 @@ public class Stopwatch extends ActionBarActivity {
     }
 
     @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
+        return super.onKeyLongPress(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyMultiple (int keyCode, int count, KeyEvent event) {
+        return super.onKeyMultiple(keyCode, count, event);
+    }
+
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        System.out.println("onKeyDown");
         // https://source.android.com/devices/accessories/headset/plug-headset-spec
         // 0 Ohm     KeyEvent.KEYCODE_HEADSETHOOK
         // 240 Ohm   KeyEvent.KEYCODE_VOLUME_UP
